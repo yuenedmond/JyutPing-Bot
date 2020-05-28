@@ -1,4 +1,6 @@
 wheel
 cryptg
 pillow
+pydub
+ffmpeg
 telethon==1.13.0

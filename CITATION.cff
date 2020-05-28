@@ -1,0 +1,14 @@
+# YAML 1.2
+---
+authors: 
+  -
+    family-names: Yuen
+    given-names: Edmond
+cff-version: 1
+date-released: 2020-05-29
+license: GNU GENERAL PUBLIC LICENSE V3
+message: "If you use this software, please cite it as below."
+repository-code: "https://github.com/yuenedmond/telegram_jyutpingbot"
+title: "Telegram JyutPing Bot"
+version: "0.0.1"
+...

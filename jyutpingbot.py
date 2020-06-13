@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-info:
-this script is for jyutpingbot.
-jyutpingbot is a dictionary for Chinese characters and JyutPing.
-it takes either as input and outputs the other.
+Info:
+This is a Python script for jyutpingbot.
+Jyutpingbot is a dictionary for Chinese characters and JyutPing.
+It takes either as input and outputs the other.
 """
 
 # enable console error logging
@@ -52,6 +52,7 @@ async def mainHandler(event):
  
 #process input
 async def process(string, senderid):
+
     output=""
     
     # Chinese input
@@ -64,6 +65,8 @@ async def process(string, senderid):
         entry=[]
         usedin=[]
         similar=[]
+        traditional=""
+        # search in cccanto corpus
         for i in cccanto.parsed_dict:
             if string==i["traditional"] or string==i["simplified"]:
                 if i["jyutping"] not in sentjyutping:
@@ -91,10 +94,11 @@ async def process(string, senderid):
                     numentries=numentries+1
                     sentjyutping.append(i["jyutping"])
         english=""
+        # search in cantoreading corpus
         for i in cantoreading.parsed_dict:
             if string==i["traditional"] or string==i["simplified"]:
                 if i["jyutping"] not in sentjyutping:
-                    #get definition through cedict
+                    # get definition through cedict
                     for j in cedict.parsed_dict:
                         if i["traditional"] == j["traditional"] and i["pinyin"] == j["pinyin"]:
                             english=j["english"]
@@ -103,10 +107,12 @@ async def process(string, senderid):
                     entry.append([0, i["jyutping"], i["pinyin"], english])
                     numentries=numentries+1
                     sentjyutping.append(i["jyutping"])
-        #output
+        # output
         output="Traditional Chinese: " + traditional + "\n"
         output=output+"Simplified Chinese: " + simplified + "\n"
         output=output+"Number of entries: " + str(numentries)
+        await client.send_message(senderid, output)
+        output=""
         temp=0
         for entry in entry:
             temp=temp+1
@@ -125,6 +131,11 @@ async def process(string, senderid):
                     output=output+"\n"+usedin
                 if (len(entry[4])==0):
                     output=output+ " N/A"
+                await client.send_message(senderid, output)
+                audiooutput = await getaudio(entry[1])
+                await client.send_file(senderid, audiooutput, voice_note=True, caption=traditional)
+                os.remove(audiooutput)
+                output=""
             else:
                 output=output+"\n\nEntry "+str(temp)+":"
                 output=output+"\nJyutPing:\t\t"+entry[1]
@@ -134,15 +145,27 @@ async def process(string, senderid):
                     output=output+entry[3]
                 else:
                     output=output+"N/A"
-        await client.send_message(senderid, output)
+                await client.send_message(senderid, output)
+                audiooutput = await getaudio(entry[1])
+                await client.send_file(senderid, audiooutput, voice_note=True, caption=traditional)
+                os.remove(audiooutput)
+                output=""
         dt = datetime.datetime.now()
         print(dt.strftime("%m/%d/%Y %H:%M:%S")+" : user: "+str(senderid)+" , output: "+traditional)
+        await savelog(senderid,traditional)
         return None
     
     # JyutPing input
     # todo: change 7-9 tone to 1, 3, 6
     elif (string[-1].isdigit()):
         string=string.lower()
+        # change 7-9 tone to 1, 3, 6
+        if(string[-1]=="7"):
+            string=string.replace("7","1")
+        elif(string[-1]=="8"):
+            string=string.replace("8","3")
+        elif(string[-1]=="9"):
+            string=string.replace("9","6")
         result=[]
         stringtest=string
         stringtest=stringtest.split()
@@ -154,6 +177,7 @@ async def process(string, senderid):
             senttraditional=[]
             numentries=0
             entry=[]
+            # search in cccanto corpus
             for i in cccanto.parsed_dict:
                 if string==i["jyutping"]:
                     if i["traditional"] not in senttraditional:
@@ -162,10 +186,11 @@ async def process(string, senderid):
                         numentries=numentries+1
                         senttraditional.append(i["traditional"])
             english=""
+            # search in cantoreading corpus
             for i in cantoreading.parsed_dict:
                 if string==i["jyutping"]:
                     if i["traditional"] not in senttraditional:
-                        #get definition through cedict
+                        # get definition through cedict
                         for j in cedict.parsed_dict:
                             if i["traditional"] == j["traditional"] and i["pinyin"] == j["pinyin"]:
                                 english=j["english"]
@@ -173,7 +198,7 @@ async def process(string, senderid):
                         entry.append([i["traditional"], i["simplified"], i['pinyin'], english])
                         numentries=numentries+1
                         senttraditional.append(i["traditional"])
-            #output
+            # output
             output="JyutPing: " + jyutping + "\n"
             output=output+"Number of entries: " + str(numentries)
             temp=0
@@ -186,10 +211,11 @@ async def process(string, senderid):
                 output=output+"\nMeaning:\t\t"+entry[3]
             await client.send_message(senderid, output)
             audiooutput = await getaudio(jyutping)
-            await client.send_file(senderid, audiooutput)
+            await client.send_file(senderid, audiooutput, voice_note=True)
             os.remove(audiooutput)
             dt = datetime.datetime.now()
             print(dt.strftime("%m/%d/%Y %H:%M:%S")+" : user: "+str(senderid)+" , output: "+jyutping)
+            await savelog(senderid,jyutping)
         else:
             await client.send_message(senderid, "Error.\nInput is not valid JyutPing.")
         return None
@@ -199,7 +225,7 @@ async def process(string, senderid):
         await client.send_message(senderid, "Error.\nMake sure your input is either\n- all Chinese\n- in JyutPing.")
         return None
 
-#check validity of jyutping
+# check validity of jyutping
 async def checkjyutping(inputstr):
     # list of all possible initial and final
     initial=['b','p','m','f','d','t','n','l','g','k','ng','h','gw','kw','w','z','c','s','j']
@@ -210,29 +236,30 @@ async def checkjyutping(inputstr):
            'o','oi','ou','on','ong','ot','ok',
            'u','ui','un','ung','ut','uk',
            'eoi','eon','eot','oe','oeng','oet','oek','yu','yun','yut','m','ng']
-    #check validity
+    # check validity
     # only one digit in string
     if (sum(c.isdigit() for c in inputstr))==1:
         # tone between 1 and 9
         if (int(inputstr[-1])>0 and int(inputstr[-1])<10):
             #remove tone
             inputstr=inputstr[:-1]
-            #input equals standalone final (return true)
+            # input equals standalone final (return true)
             if (inputstr in final):
                 return True
             else:
-                #first letter is an initial
+                # first letter is an initial
                 if (inputstr[0] in initial):
-                    #remove initial
+                    # remove initial
                     inputstr=inputstr[1:]
-                    #remaining string in final (return true)
+                    # remaining string in final (return true)
                     if (inputstr in final):
                         return True
     # if any condition is not met (return false)
     return False
 
 # return path for audio file
-#possible bug: if many people search for the same word, the server may not be able to catch up (deletes regularly)
+# audio output: 200ms silence at start, 400ms silence between words (if more than 1 word), 400ms silence at the end
+# possible bug: if many people search for the same word, the server may not be able to catch up (deletes regularly)
 async def getaudio(inputstr):
     pause = AudioSegment.silent(duration=400)
     outputaudio = AudioSegment.silent(duration=200)
@@ -247,6 +274,15 @@ async def getaudio(inputstr):
         outputaudio=outputaudio+appendaudio+pause
     outputaudio.export(outputpath, format="wav")
     return outputpath
+
+# save to logfile
+async def savelog(senderid, string):
+    dt = datetime.datetime.now()
+    with open("log\\" + str(senderid) + ".txt", mode = "a", encoding = "utf-8") as logfile:
+        logfile.write(dt.strftime("%m/%d/%Y %H:%M:%S")+" : output: "+string)
+        logfile.close()
+    return None
+
 # start client and run until stopped
 client.start()
 dt = datetime.datetime.now()

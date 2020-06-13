@@ -1,6 +1,6 @@
 # Telegram JyutPing Bot
 
-current version: 1.0.0
+current version: 1.2.3
 
 Telegram JyutPing Bot is a telegram bot script written in Python. 
 It is a dictionary, searching for entries based on Chinese input. 
@@ -48,6 +48,23 @@ Bot
 
 ## Usage
 
+## BotFather parameters
+
+This section includes information about the bot as given to BotFather.
+
+Description:
+Hi! My name is JyutPing Bot!
+Get started using the /start command.
+This is a work in progress.
+For more info, go to https://github.com/yuenedmond/JyutPing-Bot
+
+About:
+Simple Chinese/JyutPing/English Dictionary using Telethon and Python.
+
+Commands:
+/start
+/help
+
 ## Files/Directories
 
 corpus/
@@ -85,14 +102,38 @@ Batch file to run the script. No difference to running jyutpingbot.py.
 ## Version History
 
 This section lists all version history.
-Dates in parentheses indicate the date this version was pushed onto github.
-No date means it was committed locally only.
+
+1.2.3
+
+updated readme
+
+1.2.2
+
+fixed Jyutping 7-9 tones
+
+1.2.1
+
+small code changes
+
+1.2.0
+
+Implemented text-to-speech for Chinese characters
+
+Modified output format
+
+1.1.1
+
+Refined code
+
+1.1.0
+
+Implemented user search logging
 
 1.0.1
 
 Updated start, help text
 
-1.0.0 (5/29/20)
+1.0.0 (release)
 
 Implemented text-to-speech for Jyutping
 
@@ -114,9 +155,9 @@ Added icon.png
 
 various bugfixes
 
-0.1.0 (5/28/20)
+0.1.0
 
-Initial release
+Initial release (5/28/20)
 
 Chinese word search, Chinese phrase search, JyutPing word search
 
